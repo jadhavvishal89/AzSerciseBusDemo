@@ -37,7 +37,7 @@ namespace AzSerciseBusDemo.Repositories
             ServiceBusClient client = new ServiceBusClient(_configuration["AzServiceBusConnectionStrings"]);
             var receiver= client.CreateReceiver(_configuration["QueueName"]);
 
-            var message =  await receiver.ReceiveMessagesAsync();
+            //var message =  await receiver.ReceiveMessagesAsync();
 
            
         }
