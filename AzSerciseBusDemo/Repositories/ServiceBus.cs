@@ -29,17 +29,17 @@ namespace AzSerciseBusDemo.Repositories
 
         }
 
-        public async Task GetMessageAsync()
+        //public async Task GetMessageAsync()
 
-        {
-            // IQueueClient client = new QueueClient(_configuration["AzServiceBusConnectionStrings"], _configuration["QueueName"]);
+        //{
+        //    // IQueueClient client = new QueueClient(_configuration["AzServiceBusConnectionStrings"], _configuration["QueueName"]);
 
-            ServiceBusClient client = new ServiceBusClient(_configuration["AzServiceBusConnectionStrings"]);
-            var receiver= client.CreateReceiver(_configuration["QueueName"]);
+        //    ServiceBusClient client = new ServiceBusClient(_configuration["AzServiceBusConnectionStrings"]);
+        //    var receiver= client.CreateReceiver(_configuration["QueueName"]);
 
-            //var message =  await receiver.ReceiveMessagesAsync();
+        //    //var message =  await receiver.ReceiveMessagesAsync();
 
            
-        }
+        //}
     }
 }
