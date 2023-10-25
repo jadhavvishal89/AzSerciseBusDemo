@@ -1,5 +1,6 @@
 ﻿using AzSerciseBusDemo.Models;
 using AzSerciseBusDemo.Repositories;
+using Azure.Messaging.ServiceBus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,19 @@ namespace AzSerciseBusDemo.Controllers
             }
             return Ok();
         }
-        
+        [HttpGet("order")]
+        public async Task<IActionResult> GetOrderDetails()
+        {
+            var result= await _serviceBus.GetCarDetailsMessageAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("Allorder")]
+        public async Task<IActionResult> GetAllOrderDetails()
+        {
+            await _serviceBus.GetAllMessageAsync();
+            return Ok();
+        }
+
     }
 }

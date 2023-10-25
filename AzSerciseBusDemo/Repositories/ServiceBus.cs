@@ -9,37 +9,79 @@ namespace AzSerciseBusDemo.Repositories
     public class ServiceBus : IserviceBus
     {
         private readonly IConfiguration _configuration;
+        ServiceBusClient client;
+        ServiceBusSender sender;
+        ServiceBusReceiver receiver;
         public ServiceBus(IConfiguration configuration)
         {
             _configuration = configuration;
+
+            // the client that owns the connection and can be used to create senders and receivers
+             client = new ServiceBusClient(_configuration["AzServiceBusConnectionStrings"]);
+
+            // the sender used to publish messages to the queue
+             sender = client.CreateSender(_configuration["QueueName"]);
+             receiver = client.CreateReceiver(_configuration["QueueName"]);
         }
         public async Task SendMessageAsync(CarDetails carDetails)
         {
-            IQueueClient client = new QueueClient(_configuration["AzServiceBusConnectionStrings"], _configuration["QueueName"]);
+            //Add Meesage to Queue with client
+            //IQueueClient client = new QueueClient(_configuration["AzServiceBusConnectionStrings"], _configuration["QueueName"]);
+
+            ////Serialize car details object
+            //var messageBody = JsonSerializer.Serialize(carDetails);
+
+            //var message = new Message(Encoding.UTF8.GetBytes(messageBody))
+            //{
+            //    MessageId = Guid.NewGuid().ToString(),
+            //    ContentType = "application/json"
+            //};
+            //await client.SendAsync(message);
+
+            // Option 2 Add message to queue with sender in queue
 
             //Serialize car details object
             var messageBody = JsonSerializer.Serialize(carDetails);
+            
+            ServiceBusMessage message = new ServiceBusMessage(messageBody);
 
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody))
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                ContentType = "application/json"
-            };
-            await client.SendAsync(message);
+            await sender.SendMessageAsync(message);
 
         }
+        public async Task<string> GetCarDetailsMessageAsync()
+        {
+            var receivedmessage=  await receiver.ReceiveMessageAsync();
 
-        //public async Task GetMessageAsync()
+            var body = receivedmessage.Body.ToString();
+            return body;
+        }
+        public async Task GetAllMessageAsync()
 
-        //{
-        //    // IQueueClient client = new QueueClient(_configuration["AzServiceBusConnectionStrings"], _configuration["QueueName"]);
+        {
+            ServiceBusProcessor processor = client.CreateProcessor(_configuration["QueueName"], new ServiceBusProcessorOptions());
+                        
+            processor.ProcessMessageAsync += MessageHandler;
+            processor.ProcessErrorAsync += ErrorHandler;
 
-        //    ServiceBusClient client = new ServiceBusClient(_configuration["AzServiceBusConnectionStrings"]);
-        //    var receiver= client.CreateReceiver(_configuration["QueueName"]);
+            await processor.StartProcessingAsync();
+        }
 
-        //    //var message =  await receiver.ReceiveMessagesAsync();
+        private async Task MessageHandler(ProcessMessageEventArgs args)
+        {
+            var carDetails = args.Message.Body.ToString();
+            
+            // complete the message. message is deleted from the queue. 
+            await args.CompleteMessageAsync(args.Message);
+           // return carDetails;
 
-           
-        //}
+        }
+        // handle any errors when receiving messages
+        private Task ErrorHandler(ProcessErrorEventArgs args)
+        {
+            Console.WriteLine(args.Exception.ToString());
+            return Task.CompletedTask;
+        }
+
+        
     }
 }
